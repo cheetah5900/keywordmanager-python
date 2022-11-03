@@ -1,0 +1,153 @@
+{%extends 'keywordapp/layout.html'%} {%block title%}จัดการข้อมูลหน้าทั้งหมด
+{%endblock title%} {%block content%} {%load static%}
+<h1 class="display-3 text-center">ตำแหน่งของ Keyword</h1>
+<h3 class="text-center">Keyword : {{keywordName}}</h3>
+{%if message%}
+<div class="alert alert-success" role="success">{{message}}</div>
+{%endif%} {%if error%}
+<div class="alert alert-danger" role="alert">{{error}}</div>
+{%endif%}
+
+<div class="d-flex justify-content-between mb-5">
+  <a class="btn btn-gray" href="{{backButton}}">
+    ย้อนกลับ
+  </a>
+  <p>จำนวนทั้งหมด : {{sumAmountAllPageKw}}</p>
+</div>
+<div class="row">
+  <div class="col-6">
+    <section class="mb-5 mt-2 pink-bg padding-10">
+      <h2><span class="badge text-bg-primary">หัวข้อหลัก</span></h2>
+      <div class="table-responsive">
+        <table class="table">
+          <tr class="table-primary">
+            <th class="text-center">ลำดับ</th>
+            <th class="text-center">หน้า</th>
+            <th class="text-center">จำนวน</th>
+            <th class="text-center">รายละเอียด</th>
+          </tr>
+          {% for a,b,c in zipDataForLoopOfMainHeader%}
+          <tr>
+            <td class="text-center">{{forloop.counter}}</td>
+            <td class="text-center">{{a}}</td>
+            <td class="text-center">{{b}}</td>
+            <td class="text-center">
+              {% if keywordType != "meta" %}
+              <a href="/destination-tag-add/{{keywordType}}/mainkw/{{length}}/{{pageId}}/{{c}}/{{mainKeywordId}}/{{keywordId}}" class="btn btn-primary"><i class="bi bi-box-arrow-up-right"></i></a></td>
+              {%endif%}
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </section>
+  </div>
+  <div class="col-6">
+    <section class="mb-5 mt-2 pink-bg padding-10">
+      <h2><span class="badge text-bg-primary">หัวข้อย่อย</span></h2>
+      <div class="table-responsive">
+        <table class="table">
+          <tr class="table-primary">
+            <th class="text-center">ลำดับ</th>
+            <th class="text-center">หน้า</th>
+            <th class="text-center">จำนวน</th>
+            <th class="text-center">รายละเอียด</th>
+          </tr>
+          {% for a,b,c in zipDataForLoopOfSubHeader%}
+          <tr>
+            <td class="text-center">{{forloop.counter}}</td>
+            <td class="text-center">{{a}}</td>
+            <td class="text-center">{{b}}</td>
+            <td>
+              {% if keywordType != "meta" %}
+              <a href="/destination-tag-add/{{keywordType}}/subkw/{{length}}/{{pageId}}/{{c}}/{{mainKeywordId}}/{{keywordId}}" class="btn btn-primary"><i class="bi bi-box-arrow-up-right"></i></a></td>
+              {%endif%}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </section>
+  </div>
+  <div class="col-6">
+    <section class="mb-5 mt-2 pink-bg padding-10">
+      <h2><span class="badge text-bg-primary">Footer</span></h2>
+      <div class="table-responsive">
+        <table class="table">
+          <tr class="table-primary">
+            <th class="text-center">ลำดับ</th>
+            <th class="text-center">หน้า</th>
+            <th class="text-center">จำนวน</th>
+            <th class="text-center">รายละเอียด</th>
+          </tr>
+          {% for a,b,c in zipDataForLoopOfMainFooter%}
+          <tr>
+            <td class="text-center">{{forloop.counter}}</td>
+            <td class="text-center">{{a}}</td>
+            <td class="text-center">{{b}}</td>
+            <td class="text-center">
+              
+            
+              {% if keywordType != "meta" %}
+              <a href="/destination-tag-add/{{keywordType}}/mainfooter/{{length}}/{{pageId}}/{{c}}/{{mainKeywordId}}/{{keywordId}}" class="btn btn-primary"><i class="bi bi-box-arrow-up-right"></i></a></td>
+              {%endif%}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </section>
+  </div>
+  <div class="col-6">
+    <section class="mb-5 mt-2 pink-bg padding-10">
+      <h2><span class="badge text-bg-primary">Sub Footer</span></h2>
+      <div class="table-responsive">
+        <table class="table">
+          <tr class="table-primary">
+            <th class="text-center">ลำดับ</th>
+            <th class="text-center">หน้า</th>
+            <th class="text-center">จำนวน</th>
+            <th class="text-center">รายละเอียด</th>
+          </tr>
+          {% for a,b,c in zipDataForLoopOfSubFooter%}
+          <tr>
+            <td class="text-center">{{forloop.counter}}</td>
+            <td class="text-center">{{a}}</td>
+            <td class="text-center">{{b}}</td>
+            <td class="text-center">
+              {% if keywordType != "meta" %}
+              <a href="/destination-tag-add/{{keywordType}}/subfooter/{{length}}/{{pageId}}/{{c}}/{{mainKeywordId}}/{{keywordId}}" class="btn btn-primary"><i class="bi bi-box-arrow-up-right"></i></a></td>
+              {%endif%}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </section>
+  </div>
+  <div class="col-12">
+    <section class="mb-5 mt-2 pink-bg padding-10">
+      <h2><span class="badge text-bg-primary">เนื้อหา</span></h2>
+      <div class="table-responsive">
+        <table class="table">
+          <tr class="table-primary">
+            <th class="text-center">ลำดับ</th>
+            <th class="text-center">หน้า</th>
+            <th class="text-center">จำนวน</th>
+            <th class="text-center">รายละเอียด</th>
+          </tr>
+          {% for a,b in zipDataForLoop%}
+          <tr>
+            <td class="text-center">{{forloop.counter}}</td>
+            <td class="text-center">{{a}}</td>
+            <td class="text-center">{{b}}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+
+
+
+
+{%endblock content%}
