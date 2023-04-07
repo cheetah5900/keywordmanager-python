@@ -1,0 +1,44 @@
+{%extends 'keywordapp/layout.html'%} 
+
+{%block activehouse%}active{%endblock activehouse%}
+ {%block content%}
+    <div class="page-content-wrapper">
+      <!-- Weekly Best Sellers-->
+      <div class="weekly-best-seller-area py-3">
+        <div class="container">
+          <div class="section-heading">
+            <h2>หาบ้าน</h2>
+            <h6 style="color:red;">ถ้าคนประกาศไม่ได้ใส่เบอร์มาในคำอธิบาย จะไม่มีเบอร์ให้ติดต่อ เป็นข้อเสียของระบบ</h6>
+          </div>
+          <div class="row g-3">
+            <!-- Single Weekly Product Card-->
+
+            {%for x in dataForLoop%}
+            <div class="col-12">
+              <div class="card weekly-product-card">
+                <div class="card-body align-items-center">
+                  <div class="product-description" style="width:100%;max-width: 100%;"><a class="product-title d-block" href="#">{{x.header}}</a>
+                    <p class="sale-price"><i class="lni lni-calendar"></i>{{x.date}}</p>
+                    <div class="product-rating"><i class="lni lni-text-align-center"></i>{{x.content}}</div>
+                    <a class="btn btn-success btn-sm" target="_blank" href="{{x.link}}">รายละเอียด</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <!-- Discount Coupon Card-->
+      <div class="container">
+        <div class="card discount-coupon-card border-0">
+          <div class="card-body">
+            <div class="coupon-text-wrap d-flex align-items-center p-3">
+              <h5 class="text-white pe-3 mb-0">--- </h5>
+              <p class="text-white ps-3 mb-0">-------</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {%endblock content%}
