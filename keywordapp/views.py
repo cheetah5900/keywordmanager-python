@@ -3,25 +3,13 @@
 # =============================== FOR PAGE KEYWORD MANAGER ===============================
 # =============================== FOR PAGE KEYWORD MANAGER ===============================
 
-from datetime import datetime
-# from textwrap import shorten
-# from xml.etree.ElementTree import SubElement
-from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
-from uuid import uuid1
 
+from datetime import date,timedelta
 
 # require login to enter function
-from django.contrib.auth.decorators import login_required
 # import model
 from keywordapp.models import *
-# ให้สามารถเก็บไฟล์ได้
-from django.core.files.storage import FileSystemStorage
-# AJAX เขียนแบบ Class-Based
-from django.views.generic import View  # ให้ใช้ ListView ได้
-from django.http import JsonResponse
-from collections import Counter  # เอาไว้นับจำนวนคำใน list
-
 
 # =============================== FOR SELENIUM GET DATA ===============================
 # =============================== FOR SELENIUM GET DATA ===============================
@@ -43,14 +31,61 @@ import time
 
 def Work(request):
     context = {}
-    dataForLoop = TempListOfWorkModel.objects.all().order_by('-date')
+    headerList = []
+    dateList = []
+    contentList = []
+    linkList = []
+
+    # sort by last 7 days
+    currentDate = date.today()
+    lastSevenDays = currentDate-timedelta(days=7)
+    data = ListOfWorkModel.objects.filter(date__range=[lastSevenDays,currentDate]).order_by('-date')
+
+
+    for item in data:
+        headerList.append(item.header)
+        contentList.append(item.content)
+        linkList.append(item.link)
+
+        day = item.date.strftime("%d")
+        month = item.date.strftime("%b")
+        year = item.date.strftime("%Y")
+        dateReFormat = "{} {} {}".format(day, month, year)
+        dateList.append(dateReFormat)
+
+
+    dataForLoop = zip(headerList,dateList,contentList,linkList)
+
     context['dataForLoop'] = dataForLoop
     return render(request, 'keywordapp/work.html', context)
 
 
 def House(request):
     context = {}
-    dataForLoop = TempListOfHouseModel.objects.all().order_by('-date')
+    headerList = []
+    dateList = []
+    contentList = []
+    linkList = []
+
+    # sort by last 7 days
+    currentDate = date.today()
+    lastSevenDays = currentDate-timedelta(days=7)
+    data = ListOfHouseModel.objects.filter(date__range=[lastSevenDays,currentDate]).order_by('-date')
+
+    for item in data:
+        headerList.append(item.header)
+        contentList.append(item.content)
+        linkList.append(item.link)
+
+        day = item.date.strftime("%d")
+        month = item.date.strftime("%b")
+        year = item.date.strftime("%Y")
+        dateReFormat = "{} {} {}".format(day, month, year)
+        dateList.append(dateReFormat)
+
+
+    dataForLoop = zip(headerList,dateList,contentList,linkList)
+
     context['dataForLoop'] = dataForLoop
     return render(request, 'keywordapp/house.html', context)
 
@@ -60,6 +95,9 @@ def House(request):
 # =============================== WORK ===============================
 
 def RefreshWork(request):
+
+    # Delete temp link before start anything
+    TempLinkOfWorkModel.objects.all().delete()
 
     # Open in mobile
     ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Mobile/15E148 Safari/604.1'
@@ -86,21 +124,32 @@ def RefreshWork(request):
             checkElement = False
     link = driver.find_elements(By.CSS_SELECTOR, 'div.feature-box-info > h4.shorter > a')
 
+    # Call all data for checking
+    ListOfWork = ListOfWorkModel.objects.all()
+    countListOfWork = ListOfWork.count()
 
-
-    TempListOfWorkModel.objects.all().delete()
     for x in link:
-        linkHref = x.get_attribute('href')
-        print("linkHref: "+linkHref)
-        
-        newTempListOfWork = TempListOfWorkModel()
-        newTempListOfWork.link = linkHref
-        newTempListOfWork.save()
+        tempLink = x.get_attribute('href')
+        if countListOfWork == 0:
+                newListOfWork = TempLinkOfWorkModel()
+                newListOfWork.link = tempLink
+                newListOfWork.save()
+        else:
+            for y in ListOfWork:
+                if tempLink == y.link:
+                    try:
+                        TempLinkOfWorkModel.objects.get(link=tempLink).delete()
+                    except:
+                        pass
+                
+            newListOfWork = TempLinkOfWorkModel()
+            newListOfWork.link = tempLink
+            newListOfWork.save()
 
 
     driver.quit()
 
-    CollectWorkFromDB(request)
+    # CollectWorkFromDB(request)
 
     return redirect('work')
 
@@ -118,14 +167,12 @@ def CollectWorkFromDB(request):
     # local
     driver = webdriver.Chrome("/Users/chaperone/Documents/GitHub/keywordmanager-python/chromedriver",options=options)
 
+
     # Call all data for looping
-    TempListOfWorkModelObject = TempListOfWorkModel.objects.all()
-
-    for x in TempListOfWorkModelObject:
-        link = x.link
-        id = x.id
-
-        driver.get(link)
+    tempLinkOfWork = TempLinkOfWorkModel.objects.all()
+    for x in tempLinkOfWork:
+        tempLink = x.link
+        driver.get(tempLink)
         try:
             WebDriverWait(driver, timeout=5).until(
             lambda d: d.find_element(By.CSS_SELECTOR, '#post-content > h3'))
@@ -136,17 +183,31 @@ def CollectWorkFromDB(request):
         date = driver.find_element(By.CSS_SELECTOR, '#post-content > h3 + p')
         content = driver.find_element(By.CSS_SELECTOR, '#post-content > p.post-body')
 
-        # driver.close()
-
         dateText = date.text
-        dateOnly = dateText[0:11]
+        dateOnly = dateText[0:2]
 
-        # Edit data
-        updateData = TempListOfWorkModel.objects.get(id=id)
-        updateData.header = header.text
-        updateData.date = dateOnly
-        updateData.content = content.text
-        updateData.save()
+        #Convert text to number to check
+        dateToInt = int(dateOnly)
+
+        if dateToInt <= 9:
+            monthOnly = dateText[2:5]
+            yearOnly = dateText[6:10]
+        else:
+            monthOnly = dateText[3:6]
+            yearOnly = dateText[7:11]
+
+        #Convert text to number
+        yearToInt = int(yearOnly)
+        monthToInt = ConvertMonthToNumber(monthOnly)
+
+
+        # Add data
+        newListOfWork = ListOfWorkModel()
+        newListOfWork.link = tempLink
+        newListOfWork.header = header.text
+        newListOfWork.date = "{}-{}-{} 00:00:00".format(yearToInt,monthToInt,dateToInt)
+        newListOfWork.content = content.text
+        newListOfWork.save()
 
 
     driver.quit()
@@ -160,6 +221,8 @@ def CollectWorkFromDB(request):
 
 def RefreshHouse(request):
 
+    # Delete temp link before start anything
+    TempLinkOfHouseModel.objects.all().delete()
     # Open in mobile
     ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Mobile/15E148 Safari/604.1'
     options = webdriver.ChromeOptions()
@@ -185,13 +248,28 @@ def RefreshHouse(request):
             checkElement = False
     link = driver.find_elements(By.CSS_SELECTOR, 'div.feature-box-info > h4.shorter > a')
 
-    TempListOfHouseModel.objects.all().delete()
+    # Call all data for checking
+    ListOfHouse = ListOfHouseModel.objects.all()
+    countListOfHouse = ListOfHouse.count()
+
     for x in link:
-        linkHref = x.get_attribute('href')
-        
-        newTempListOfHouse = TempListOfHouseModel()
-        newTempListOfHouse.link = linkHref
-        newTempListOfHouse.save()
+        tempLink = x.get_attribute('href')
+        tempId = x.id
+        if countListOfHouse == 0:
+                newListOfHouse = TempLinkOfHouseModel()
+                newListOfHouse.link = tempLink
+                newListOfHouse.save()
+        else:
+            for y in ListOfHouse:
+                if tempLink == y.link:
+                    try:
+                        TempLinkOfHouseModel.objects.get(link=tempLink).delete()
+                    except:
+                        pass
+                
+            newListOfHouse = TempLinkOfHouseModel()
+            newListOfHouse.link = tempLink
+            newListOfHouse.save()
 
     driver.quit()
 
@@ -212,13 +290,12 @@ def CollectHouseFromDB(request):
     driver = webdriver.Chrome("/Users/chaperone/Documents/GitHub/keywordmanager-python/chromedriver",options=options)
 
     # Call all data for looping
-    TempListOfHouseModelObject = TempListOfHouseModel.objects.all()
 
-    for x in TempListOfHouseModelObject:
-        link = x.link
-        id = x.id
+    tempLinkOfHouse = TempLinkOfHouseModel.objects.all()
+    for x in tempLinkOfHouse:
+        tempLink = x.link
 
-        driver.get(link)
+        driver.get(tempLink)
         try:
             WebDriverWait(driver, timeout=5).until(
             lambda d: d.find_element(By.CSS_SELECTOR, '#post-content > h3'))
@@ -229,20 +306,60 @@ def CollectHouseFromDB(request):
         date = driver.find_element(By.CSS_SELECTOR, '#post-content > h3 + p')
         content = driver.find_element(By.CSS_SELECTOR, '#post-content > p.post-body')
 
-        # driver.close()
-
         dateText = date.text
-        dateOnly = dateText[0:11]
+        dateOnly = dateText[0:2]
 
-        # Edit data
-        updateData = TempListOfHouseModel.objects.get(id=id)
-        updateData.header = header.text
-        updateData.date = dateOnly
-        updateData.content = content.text
-        updateData.save()
+        #Convert text to number to check
+        dateToInt = int(dateOnly)
 
+        if dateToInt <= 9:
+            monthOnly = dateText[2:5]
+            yearOnly = dateText[6:10]
+        else:
+            monthOnly = dateText[3:6]
+            yearOnly = dateText[7:11]
+
+        #Convert text to number
+        yearToInt = int(yearOnly)
+        monthToInt = ConvertMonthToNumber(monthOnly)
+
+        # Add data
+        newListOfHouse = ListOfHouseModel()
+        newListOfHouse.link = tempLink
+        newListOfHouse.header = header.text
+        newListOfHouse.date = "{}-{}-{} 00:00:00".format(yearToInt,monthToInt,dateToInt)
+        newListOfHouse.content = content.text
+        newListOfHouse.save()
 
     driver.quit()
 
     return redirect('house')
 
+def ConvertMonthToNumber(monthOnly):
+    if monthOnly == 'Jan':
+        result = 1
+    elif monthOnly == 'Feb':
+        result = 2
+    elif monthOnly == 'Mar':
+        result = 3
+    elif monthOnly == 'Apr':
+        result = 4
+    elif monthOnly == 'May':
+        result = 5
+    elif monthOnly == 'Jun':
+        result = 6
+    elif monthOnly == 'Jul':
+        result = 7
+    elif monthOnly == 'Aug':
+        result = 8
+    elif monthOnly == 'Sep' or monthOnly == 'Sept':
+        result = 9
+    elif monthOnly == 'Oct':
+        result = 10
+    elif monthOnly == 'Nov':
+        result = 11
+    elif monthOnly == 'Dec':
+        result = 12
+    else:
+        result = 99
+    return result
