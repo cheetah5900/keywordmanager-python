@@ -149,7 +149,7 @@ def RefreshWork(request):
 
     driver.quit()
 
-    # CollectWorkFromDB(request)
+    CollectWorkFromDB(request)
 
     return redirect('work')
 
@@ -200,14 +200,16 @@ def CollectWorkFromDB(request):
         yearToInt = int(yearOnly)
         monthToInt = ConvertMonthToNumber(monthOnly)
 
-
-        # Add data
-        newListOfWork = ListOfWorkModel()
-        newListOfWork.link = tempLink
-        newListOfWork.header = header.text
-        newListOfWork.date = "{}-{}-{} 00:00:00".format(yearToInt,monthToInt,dateToInt)
-        newListOfWork.content = content.text
-        newListOfWork.save()
+        # If header is "หางาน" Remove it
+        headerText = header.text
+        if 'หางาน' not in headerText:
+            # Add data
+            newListOfWork = ListOfWorkModel()
+            newListOfWork.link = tempLink
+            newListOfWork.header = header.text
+            newListOfWork.date = "{}-{}-{} 00:00:00".format(yearToInt,monthToInt,dateToInt)
+            newListOfWork.content = content.text
+            newListOfWork.save()
 
 
     driver.quit()
@@ -215,9 +217,9 @@ def CollectWorkFromDB(request):
 
 
 
-# =============================== WORK ===============================
-# =============================== WORK ===============================
-# =============================== WORK ===============================
+# =============================== HOUSE ===============================
+# =============================== HOUSE ===============================
+# =============================== HOUSE ===============================
 
 def RefreshHouse(request):
 
@@ -254,7 +256,6 @@ def RefreshHouse(request):
 
     for x in link:
         tempLink = x.get_attribute('href')
-        tempId = x.id
         if countListOfHouse == 0:
                 newListOfHouse = TempLinkOfHouseModel()
                 newListOfHouse.link = tempLink
@@ -323,13 +324,16 @@ def CollectHouseFromDB(request):
         yearToInt = int(yearOnly)
         monthToInt = ConvertMonthToNumber(monthOnly)
 
-        # Add data
-        newListOfHouse = ListOfHouseModel()
-        newListOfHouse.link = tempLink
-        newListOfHouse.header = header.text
-        newListOfHouse.date = "{}-{}-{} 00:00:00".format(yearToInt,monthToInt,dateToInt)
-        newListOfHouse.content = content.text
-        newListOfHouse.save()
+        # If header is "หางาน" Remove it
+        headerText = header.text
+        if 'หาบ้าน' not in headerText:
+            # Add data
+            newListOfHouse = ListOfHouseModel()
+            newListOfHouse.link = tempLink
+            newListOfHouse.header = header.text
+            newListOfHouse.date = "{}-{}-{} 00:00:00".format(yearToInt,monthToInt,dateToInt)
+            newListOfHouse.content = content.text
+            newListOfHouse.save()
 
     driver.quit()
 
