@@ -5,7 +5,7 @@
 
 from django.shortcuts import render, redirect
 
-from datetime import date,timedelta
+from datetime import date,timedelta,datetime
 
 # require login to enter function
 # import model
@@ -19,7 +19,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
-import time
+
 # To setting mobile device broswer
 
 
@@ -57,6 +57,7 @@ def Work(request):
     dataForLoop = zip(headerList,dateList,contentList,linkList)
 
     context['dataForLoop'] = dataForLoop
+
     return render(request, 'keywordapp/work.html', context)
 
 
@@ -90,11 +91,86 @@ def House(request):
     return render(request, 'keywordapp/house.html', context)
 
 
+# =============================== REFRESH CHECK ===============================
+# =============================== REFRESH CHECK ===============================
+# =============================== REFRESH CHECK ===============================
+def RefreshConditionCheck(request):
+
+#? Check refresh status
+# Check if today 
+    currentDate = datetime.now() + timedelta(hours=10)
+    reFormatCurrentDate = currentDate.strftime("%Y-%m-%d")
+
+    try:
+        refreshCheck = RefreshCheck.objects.get(date=reFormatCurrentDate)
+    except:
+        newRefreshDate = RefreshCheck()
+        newRefreshDate.date = reFormatCurrentDate
+        newRefreshDate.save()
+        
+        # Get last id of refresh check table to update today
+        lastIdRefreshCheck = newRefreshDate.id
+        refreshCheck = RefreshCheck.objects.get(id=lastIdRefreshCheck)
+
+    timesInDb = refreshCheck.times
+    
+    #? If times in DB is not reached 3, We can refresh for it
+    # Check current time
+    currentTime = datetime.now()+timedelta(hours=10)
+    reFormatCurrentTime = currentTime.strftime("%H:%M")
+    if timesInDb == 0:
+        if reFormatCurrentTime >= "21:00":
+            times = 3
+            # Adjust times in DB
+            refreshCheck.times = times
+            refreshCheck.save()
+            RefreshWork()
+            RefreshHouse()
+        elif reFormatCurrentTime  >= "18:00":
+            times = 2
+            # Adjust times in DB
+            refreshCheck.times = times
+            refreshCheck.save()
+            RefreshWork()
+            RefreshHouse()
+        elif reFormatCurrentTime  >= "12:00":
+            times = 1
+            # Adjust times in DB
+            refreshCheck.times = times
+            refreshCheck.save()
+            RefreshWork()
+            RefreshHouse()
+    elif timesInDb == 1:
+        if reFormatCurrentTime >= "21:00":
+            times = 3
+            # Adjust times in DB
+            refreshCheck.times = times
+            refreshCheck.save()
+            RefreshWork()
+            RefreshHouse()
+        elif reFormatCurrentTime  >= "18:00":
+            times = 2
+            # Adjust times in DB
+            refreshCheck.times = times
+            refreshCheck.save()
+            RefreshWork()
+            RefreshHouse()
+    elif timesInDb == 2:
+        if reFormatCurrentTime >= "21:00":
+            times = 3
+            # Adjust times in DB
+            refreshCheck.times = times
+            refreshCheck.save()
+            RefreshWork()
+            RefreshHouse()
+    return redirect('work')
+
+
 # =============================== WORK ===============================
 # =============================== WORK ===============================
 # =============================== WORK ===============================
 
-def RefreshWork(request):
+def RefreshWork():
 
     # Delete temp link before start anything
     TempLinkOfWorkModel.objects.all().delete()
@@ -149,13 +225,13 @@ def RefreshWork(request):
 
     driver.quit()
 
-    CollectWorkFromDB(request)
+    CollectWorkFromDB()
 
     return redirect('work')
 
 
 
-def CollectWorkFromDB(request):
+def CollectWorkFromDB():
 
     # Open in mobile
     ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Mobile/15E148 Safari/604.1'
@@ -202,12 +278,13 @@ def CollectWorkFromDB(request):
 
         # If header is "หางาน" Remove it
         headerText = header.text
-        if 'หางาน' not in headerText:
+        checkHeader = RemoveUnwantedHeader(headerText)
+        if checkHeader == 'pass':
             # Add data
             newListOfWork = ListOfWorkModel()
             newListOfWork.link = tempLink
             newListOfWork.header = header.text
-            newListOfWork.date = "{}-{}-{} 00:00:00".format(yearToInt,monthToInt,dateToInt)
+            newListOfWork.date = "{}-{}-{}".format(yearToInt,monthToInt,dateToInt)
             newListOfWork.content = content.text
             newListOfWork.save()
 
@@ -221,7 +298,7 @@ def CollectWorkFromDB(request):
 # =============================== HOUSE ===============================
 # =============================== HOUSE ===============================
 
-def RefreshHouse(request):
+def RefreshHouse():
 
     # Delete temp link before start anything
     TempLinkOfHouseModel.objects.all().delete()
@@ -274,11 +351,11 @@ def RefreshHouse(request):
 
     driver.quit()
 
-    CollectHouseFromDB(request)
+    CollectHouseFromDB()
 
     return redirect('house')
 
-def CollectHouseFromDB(request):
+def CollectHouseFromDB():
 
     # Open in mobile
     ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Mobile/15E148 Safari/604.1'
@@ -326,12 +403,13 @@ def CollectHouseFromDB(request):
 
         # If header is "หางาน" Remove it
         headerText = header.text
-        if 'หาบ้าน' not in headerText:
+        checkHeader = RemoveUnwantedHeader(headerText)
+        if checkHeader == 'pass':
             # Add data
             newListOfHouse = ListOfHouseModel()
             newListOfHouse.link = tempLink
             newListOfHouse.header = header.text
-            newListOfHouse.date = "{}-{}-{} 00:00:00".format(yearToInt,monthToInt,dateToInt)
+            newListOfHouse.date = "{}-{}-{}".format(yearToInt,monthToInt,dateToInt)
             newListOfHouse.content = content.text
             newListOfHouse.save()
 
@@ -367,3 +445,22 @@ def ConvertMonthToNumber(monthOnly):
     else:
         result = 99
     return result
+
+def RemoveUnwantedHeader(headerText):
+    listTextUnwanted = [
+                                        'หางาน',
+                                        'หาห้อง',
+                                        'หาบ้าน',
+                                        'การบ้าน',
+                                        'homework',
+                                        'Homework',
+                                        'essay',
+                                        'สล็อต',
+                                        'assignment',
+                                        'resume',
+                                        ]
+    for x in listTextUnwanted:
+        if x in headerText:
+            return 'not pass'
+        else:
+            return 'pass'

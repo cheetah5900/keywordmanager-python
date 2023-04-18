@@ -21,7 +21,7 @@ class TempLinkOfHouseModel(models.Model):
 # ListOfWork
 class ListOfWorkModel(models.Model):
     header = models.CharField(default='',max_length=255)
-    date = models.DateTimeField(default=datetime.now, blank=True)
+    date = models.DateField(blank=True)
     content = models.TextField(default='')
     link = models.CharField(default='',max_length=255)
 
@@ -32,10 +32,18 @@ class ListOfWorkModel(models.Model):
 # ListOfHouse
 class ListOfHouseModel(models.Model):
     header = models.CharField(default='',max_length=255)
-    date = models.DateTimeField(default=datetime.now, blank=True)
+    date = models.DateField(blank=True)
     content = models.TextField(default='')
     link = models.CharField(default='',max_length=255)
 
     def __str__(self):
         return self.header
+    
+# Refresh Check
+class RefreshCheck(models.Model):
+    times = models.IntegerField(default=0)
+    date = models.DateField()
+
+    def __str__(self):
+        return self.times
 
