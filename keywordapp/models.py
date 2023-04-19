@@ -11,8 +11,8 @@ class TempLinkOfWorkModel(models.Model):
     def __str__(self):
         return self.link
     
-# TempLinkOfHouseModel
-class TempLinkOfHouseModel(models.Model):
+# LinkOfWorkModel
+class LinkOfWorkModel(models.Model):
     link = models.CharField(default='',max_length=255)
 
     def __str__(self):
@@ -27,6 +27,21 @@ class ListOfWorkModel(models.Model):
 
     def __str__(self):
         return self.header
+    
+# TempLinkOfHouseModel
+class TempLinkOfHouseModel(models.Model):
+    link = models.CharField(default='',max_length=255)
+
+    def __str__(self):
+        return self.link
+    
+    
+# LinkOfHouseModel
+class LinkOfHouseModel(models.Model):
+    link = models.CharField(default='',max_length=255)
+
+    def __str__(self):
+        return self.link
    
     
 # ListOfHouse

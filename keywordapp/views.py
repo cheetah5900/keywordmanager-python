@@ -174,15 +174,9 @@ def RefreshWork():
 
     # Delete temp link before start anything
     TempLinkOfWorkModel.objects.all().delete()
-
-    # Open in mobile
-    ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Mobile/15E148 Safari/604.1'
     options = webdriver.ChromeOptions()
     # options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("user-agent="+ua)
 
-    # local
     driver = webdriver.Chrome("/Users/chaperone/Documents/GitHub/keywordmanager-python/chromedriver",options=options)
 
     driver.get('https://sydneythai.info/jobs.php')
@@ -200,50 +194,55 @@ def RefreshWork():
             checkElement = False
     link = driver.find_elements(By.CSS_SELECTOR, 'div.feature-box-info > h4.shorter > a')
 
-    # Call all data for checking
-    ListOfWork = ListOfWorkModel.objects.all()
-    countListOfWork = ListOfWork.count()
+    # Call link of work to check extist links
+    LinkOfWork = LinkOfWorkModel.objects.all()
+    countLinkOfWork = LinkOfWork.count()
 
+    newWork = 0
     for x in link:
         tempLink = x.get_attribute('href')
-        if countListOfWork == 0:
-                newListOfWork = TempLinkOfWorkModel()
-                newListOfWork.link = tempLink
-                newListOfWork.save()
+        if countLinkOfWork == 0:
+                # permanent link
+                newLinkOfWork = LinkOfWorkModel()
+                newLinkOfWork.link = tempLink
+                newLinkOfWork.save()
+                # temp link
+                newLinkOfWork = TempLinkOfWorkModel()
+                newLinkOfWork.link = tempLink
+                newLinkOfWork.save()
         else:
-            for y in ListOfWork:
-                if tempLink == y.link:
-                    try:
-                        TempLinkOfWorkModel.objects.get(link=tempLink).delete()
-                    except:
-                        pass
-                
-            newListOfWork = TempLinkOfWorkModel()
-            newListOfWork.link = tempLink
-            newListOfWork.save()
+            duplicatedCheck = 0
+            for item in LinkOfWork:
+                if tempLink == item.link:
+                    duplicatedCheck = 1
+            # if it is not duplicate it can add to db
+            if duplicatedCheck == 0:
+                # permanent link
+                newLinkOfWork = LinkOfWorkModel()
+                newLinkOfWork.link = tempLink
+                newLinkOfWork.save()
+                # temp link
+                newLinkOfWork = TempLinkOfWorkModel()
+                newLinkOfWork.link = tempLink
+                newLinkOfWork.save()
+                newWork += 1
 
-
+    print("amount of new works :",newWork)
+    print("\n")
     driver.quit()
 
     CollectWorkFromDB()
 
+    # Delete temp link after finish everything
+    TempLinkOfWorkModel.objects.all().delete()
+
     return redirect('work')
 
-
-
 def CollectWorkFromDB():
-
-    # Open in mobile
-    ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Mobile/15E148 Safari/604.1'
     options = webdriver.ChromeOptions()
     # options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("user-agent="+ua)
 
-    # local
     driver = webdriver.Chrome("/Users/chaperone/Documents/GitHub/keywordmanager-python/chromedriver",options=options)
-
-
     # Call all data for looping
     tempLinkOfWork = TempLinkOfWorkModel.objects.all()
     for x in tempLinkOfWork:
@@ -279,6 +278,7 @@ def CollectWorkFromDB():
         # If header is "หางาน" Remove it
         headerText = header.text
         checkHeader = RemoveUnwantedHeader(headerText)
+
         if checkHeader == 'pass':
             # Add data
             newListOfWork = ListOfWorkModel()
@@ -287,7 +287,8 @@ def CollectWorkFromDB():
             newListOfWork.date = "{}-{}-{}".format(yearToInt,monthToInt,dateToInt)
             newListOfWork.content = content.text
             newListOfWork.save()
-
+        else:
+            print("\n")
 
     driver.quit()
     return redirect('work')
@@ -302,14 +303,9 @@ def RefreshHouse():
 
     # Delete temp link before start anything
     TempLinkOfHouseModel.objects.all().delete()
-    # Open in mobile
-    ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Mobile/15E148 Safari/604.1'
     options = webdriver.ChromeOptions()
     # options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("user-agent="+ua)
 
-    # local
     driver = webdriver.Chrome("/Users/chaperone/Documents/GitHub/keywordmanager-python/chromedriver",options=options)
 
     driver.get('https://sydneythai.info/house.php')
@@ -328,43 +324,53 @@ def RefreshHouse():
     link = driver.find_elements(By.CSS_SELECTOR, 'div.feature-box-info > h4.shorter > a')
 
     # Call all data for checking
-    ListOfHouse = ListOfHouseModel.objects.all()
-    countListOfHouse = ListOfHouse.count()
+    LinkOfHouse = LinkOfHouseModel.objects.all()
+    countLinkOfHouse = LinkOfHouse.count()
 
+    newHouse = 0
     for x in link:
         tempLink = x.get_attribute('href')
-        if countListOfHouse == 0:
-                newListOfHouse = TempLinkOfHouseModel()
-                newListOfHouse.link = tempLink
-                newListOfHouse.save()
+        if countLinkOfHouse == 0:
+                # permanent link
+                newLinkOfHouse = LinkOfHouseModel()
+                newLinkOfHouse.link = tempLink
+                newLinkOfHouse.save()
+                # temp link
+                newLinkOfHouse = TempLinkOfHouseModel()
+                newLinkOfHouse.link = tempLink
+                newLinkOfHouse.save()
         else:
-            for y in ListOfHouse:
-                if tempLink == y.link:
-                    try:
-                        TempLinkOfHouseModel.objects.get(link=tempLink).delete()
-                    except:
-                        pass
-                
-            newListOfHouse = TempLinkOfHouseModel()
-            newListOfHouse.link = tempLink
-            newListOfHouse.save()
+            duplicatedCheck = 0
+            for item in LinkOfHouse:
+                if tempLink == item.link:
+                    duplicatedCheck = 1
+            # if it is not duplicate it can add to db
+            if duplicatedCheck == 0:
+                # permanent link
+                newLinkOfHouse = LinkOfHouseModel()
+                newLinkOfHouse.link = tempLink
+                newLinkOfHouse.save()
+                # temp link
+                newLinkOfHouse = TempLinkOfHouseModel()
+                newLinkOfHouse.link = tempLink
+                newLinkOfHouse.save()
+                newHouse += 1
 
+    print("amount of new works :",newHouse)
+    print("\n")
     driver.quit()
 
     CollectHouseFromDB()
+    # Delete temp link before start anything
+    TempLinkOfHouseModel.objects.all().delete()
 
     return redirect('house')
 
 def CollectHouseFromDB():
 
-    # Open in mobile
-    ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Mobile/15E148 Safari/604.1'
     options = webdriver.ChromeOptions()
     # options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("user-agent="+ua)
 
-    # local
     driver = webdriver.Chrome("/Users/chaperone/Documents/GitHub/keywordmanager-python/chromedriver",options=options)
 
     # Call all data for looping
@@ -452,15 +458,29 @@ def RemoveUnwantedHeader(headerText):
                                         'หาห้อง',
                                         'หาบ้าน',
                                         'การบ้าน',
+                                        'รับยื่น ABN',
+                                        'แก้ไขฟรี',
                                         'homework',
                                         'Homework',
                                         'essay',
                                         'สล็อต',
+                                        'บาคาร่า',
                                         'assignment',
+                                        'assingment',
+                                        '❤️ Assignment',
+                                        'Assignment',
+                                        'Assingment',
                                         'resume',
+                                        'Resume',
+                                        'เรซูเม่',
+                                        'รับทำ',
+                                        'รับยื่น',
+                                        'รับงาน',
+                                        'IELTS',
+                                        'รับ inspect',
                                         ]
-    for x in listTextUnwanted:
-        if x in headerText:
-            return 'not pass'
-        else:
-            return 'pass'
+    checkUnwanted = 'pass'
+    for unwantedText in listTextUnwanted:
+        if unwantedText in headerText:
+            checkUnwanted = 'not pass'
+    return checkUnwanted
