@@ -98,6 +98,9 @@ def RefreshConditionCheck(request):
 
 #? Check refresh status
 # Check if today 
+    # ! PC
+    # currentDate = datetime.now() 
+    # ! MAC
     currentDate = datetime.now() + timedelta(hours=10)
     reFormatCurrentDate = currentDate.strftime("%Y-%m-%d")
 
@@ -116,55 +119,71 @@ def RefreshConditionCheck(request):
     
     #? If times in DB is not reached 3, We can refresh for it
     # Check current time
+    # ! PC
+    # currentTime = datetime.now()
+    # ! MAC
     currentTime = datetime.now()+timedelta(hours=10)
+
     reFormatCurrentTime = currentTime.strftime("%H:%M")
     if timesInDb == 0:
+        times = 0
         if reFormatCurrentTime >= "21:00":
+            times = 4
+        elif reFormatCurrentTime >= "18:00":
             times = 3
-            # Adjust times in DB
-            refreshCheck.times = times
-            refreshCheck.save()
-            RefreshWork()
-            RefreshHouse()
-        elif reFormatCurrentTime  >= "18:00":
-            times = 2
-            # Adjust times in DB
-            refreshCheck.times = times
-            refreshCheck.save()
-            RefreshWork()
-            RefreshHouse()
         elif reFormatCurrentTime  >= "12:00":
-            times = 1
-            # Adjust times in DB
-            refreshCheck.times = times
-            refreshCheck.save()
-            RefreshWork()
-            RefreshHouse()
-    elif timesInDb == 1:
-        if reFormatCurrentTime >= "21:00":
-            times = 3
-            # Adjust times in DB
-            refreshCheck.times = times
-            refreshCheck.save()
-            RefreshWork()
-            RefreshHouse()
-        elif reFormatCurrentTime  >= "18:00":
             times = 2
+        elif reFormatCurrentTime  >= "06:00":
+            times = 1
+        
+        if times != 0:
+            RefreshWork()
+            RefreshHouse()
             # Adjust times in DB
             refreshCheck.times = times
             refreshCheck.save()
-            RefreshWork()
-            RefreshHouse()
-    elif timesInDb == 2:
+    elif timesInDb == 1:
+        times = 1
         if reFormatCurrentTime >= "21:00":
+            times = 4
+        elif reFormatCurrentTime >= "18:00":
             times = 3
+        elif reFormatCurrentTime  >= "12:00":
+            times = 2
+        
+        if times != 1:
+            RefreshWork()
+            RefreshHouse()
             # Adjust times in DB
             refreshCheck.times = times
             refreshCheck.save()
+    
+    elif timesInDb == 2:
+        times = 2
+        if reFormatCurrentTime >= "21:00":
+            times = 4
+        elif reFormatCurrentTime >= "18:00":
+            times = 3
+        
+        if times != 2:
             RefreshWork()
             RefreshHouse()
-    return redirect('work')
+            # Adjust times in DB
+            refreshCheck.times = times
+            refreshCheck.save()
 
+    elif timesInDb == 3:
+        times = 3
+        if reFormatCurrentTime >= "21:00":
+            times = 4
+        
+        if times != 3:
+            RefreshWork()
+            RefreshHouse()
+            # Adjust times in DB
+            refreshCheck.times = times
+            refreshCheck.save()
+    return render(request, 'keywordapp/plain.html',)
 
 # =============================== WORK ===============================
 # =============================== WORK ===============================
@@ -227,8 +246,6 @@ def RefreshWork():
                 newLinkOfWork.save()
                 newWork += 1
 
-    print("amount of new works :",newWork)
-    print("\n")
     driver.quit()
 
     CollectWorkFromDB()
@@ -236,7 +253,7 @@ def RefreshWork():
     # Delete temp link after finish everything
     TempLinkOfWorkModel.objects.all().delete()
 
-    return redirect('work')
+    return 'done'
 
 def CollectWorkFromDB():
     options = webdriver.ChromeOptions()
@@ -288,10 +305,10 @@ def CollectWorkFromDB():
             newListOfWork.content = content.text
             newListOfWork.save()
         else:
-            print("\n")
+            pass
 
     driver.quit()
-    return redirect('work')
+    return 'done'
 
 
 
@@ -356,15 +373,13 @@ def RefreshHouse():
                 newLinkOfHouse.save()
                 newHouse += 1
 
-    print("amount of new works :",newHouse)
-    print("\n")
     driver.quit()
 
     CollectHouseFromDB()
     # Delete temp link before start anything
     TempLinkOfHouseModel.objects.all().delete()
 
-    return redirect('house')
+    return 'done'
 
 def CollectHouseFromDB():
 
@@ -421,7 +436,7 @@ def CollectHouseFromDB():
 
     driver.quit()
 
-    return redirect('house')
+    return 'done'
 
 def ConvertMonthToNumber(monthOnly):
     if monthOnly == 'Jan':
@@ -465,6 +480,7 @@ def RemoveUnwantedHeader(headerText):
                                         'essay',
                                         'สล็อต',
                                         'บาคาร่า',
+                                        'รับนวด',
                                         'assignment',
                                         'assingment',
                                         '❤️ Assignment',
@@ -472,6 +488,7 @@ def RemoveUnwantedHeader(headerText):
                                         'Assingment',
                                         'resume',
                                         'Resume',
+                                        'วิธีดูงาน',
                                         'เรซูเม่',
                                         'รับทำ',
                                         'รับยื่น',
