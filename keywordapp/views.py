@@ -39,7 +39,7 @@ def Work(request):
     # sort by last 7 days
     currentDate = date.today()
     lastSevenDays = currentDate-timedelta(days=7)
-    data = ListOfWorkModel.objects.filter(date__range=[lastSevenDays,currentDate]).order_by('-date')
+    data = ListOfWorkModel.objects.filter(date__range=[lastSevenDays,currentDate]).order_by('-date','-id')
 
 
     for item in data:
@@ -71,7 +71,7 @@ def House(request):
     # sort by last 7 days
     currentDate = date.today()
     lastSevenDays = currentDate-timedelta(days=7)
-    data = ListOfHouseModel.objects.filter(date__range=[lastSevenDays,currentDate]).order_by('-date')
+    data = ListOfHouseModel.objects.filter(date__range=[lastSevenDays,currentDate]).order_by('-date','-id')
 
     for item in data:
         headerList.append(item.header)
@@ -96,94 +96,9 @@ def House(request):
 # =============================== REFRESH CHECK ===============================
 def RefreshConditionCheck(request):
 
-#? Check refresh status
-# Check if today 
-    # ! PC
-    # currentDate = datetime.now() 
-    # ! MAC
-    currentDate = datetime.now() + timedelta(hours=10)
-    reFormatCurrentDate = currentDate.strftime("%Y-%m-%d")
-
-    try:
-        refreshCheck = RefreshCheck.objects.get(date=reFormatCurrentDate)
-    except:
-        newRefreshDate = RefreshCheck()
-        newRefreshDate.date = reFormatCurrentDate
-        newRefreshDate.save()
-        
-        # Get last id of refresh check table to update today
-        lastIdRefreshCheck = newRefreshDate.id
-        refreshCheck = RefreshCheck.objects.get(id=lastIdRefreshCheck)
-
-    timesInDb = refreshCheck.times
-    
-    #? If times in DB is not reached 3, We can refresh for it
-    # Check current time
-    # ! PC
-    # currentTime = datetime.now()
-    # ! MAC
-    currentTime = datetime.now()+timedelta(hours=10)
-
-    reFormatCurrentTime = currentTime.strftime("%H:%M")
-    if timesInDb == 0:
-        times = 0
-        if reFormatCurrentTime >= "21:00":
-            times = 4
-        elif reFormatCurrentTime >= "18:00":
-            times = 3
-        elif reFormatCurrentTime  >= "12:00":
-            times = 2
-        elif reFormatCurrentTime  >= "06:00":
-            times = 1
-        
-        if times != 0:
-            RefreshWork()
-            RefreshHouse()
-            # Adjust times in DB
-            refreshCheck.times = times
-            refreshCheck.save()
-    elif timesInDb == 1:
-        times = 1
-        if reFormatCurrentTime >= "21:00":
-            times = 4
-        elif reFormatCurrentTime >= "18:00":
-            times = 3
-        elif reFormatCurrentTime  >= "12:00":
-            times = 2
-        
-        if times != 1:
-            RefreshWork()
-            RefreshHouse()
-            # Adjust times in DB
-            refreshCheck.times = times
-            refreshCheck.save()
-    
-    elif timesInDb == 2:
-        times = 2
-        if reFormatCurrentTime >= "21:00":
-            times = 4
-        elif reFormatCurrentTime >= "18:00":
-            times = 3
-        
-        if times != 2:
-            RefreshWork()
-            RefreshHouse()
-            # Adjust times in DB
-            refreshCheck.times = times
-            refreshCheck.save()
-
-    elif timesInDb == 3:
-        times = 3
-        if reFormatCurrentTime >= "21:00":
-            times = 4
-        
-        if times != 3:
-            RefreshWork()
-            RefreshHouse()
-            # Adjust times in DB
-            refreshCheck.times = times
-            refreshCheck.save()
-    return render(request, 'keywordapp/plain.html',)
+    RefreshWork()
+    RefreshHouse()
+    return 'done'
 
 # =============================== WORK ===============================
 # =============================== WORK ===============================
@@ -195,7 +110,9 @@ def RefreshWork():
     TempLinkOfWorkModel.objects.all().delete()
     options = webdriver.ChromeOptions()
     # options.add_argument("--headless")
-
+    #! PC
+    # driver = webdriver.Chrome(options=options)
+    #! MAC
     driver = webdriver.Chrome("/Users/chaperone/Documents/GitHub/keywordmanager-python/chromedriver",options=options)
 
     driver.get('https://sydneythai.info/jobs.php')
@@ -259,7 +176,11 @@ def CollectWorkFromDB():
     options = webdriver.ChromeOptions()
     # options.add_argument("--headless")
 
+    #! PC
+    # driver = webdriver.Chrome(options=options)
+    #! MAC
     driver = webdriver.Chrome("/Users/chaperone/Documents/GitHub/keywordmanager-python/chromedriver",options=options)
+
     # Call all data for looping
     tempLinkOfWork = TempLinkOfWorkModel.objects.all()
     for x in tempLinkOfWork:
@@ -323,6 +244,9 @@ def RefreshHouse():
     options = webdriver.ChromeOptions()
     # options.add_argument("--headless")
 
+    #! PC
+    # driver = webdriver.Chrome(options=options)
+    #! MAC
     driver = webdriver.Chrome("/Users/chaperone/Documents/GitHub/keywordmanager-python/chromedriver",options=options)
 
     driver.get('https://sydneythai.info/house.php')
@@ -386,6 +310,9 @@ def CollectHouseFromDB():
     options = webdriver.ChromeOptions()
     # options.add_argument("--headless")
 
+    #! PC
+    # driver = webdriver.Chrome(options=options)
+    #! MAC
     driver = webdriver.Chrome("/Users/chaperone/Documents/GitHub/keywordmanager-python/chromedriver",options=options)
 
     # Call all data for looping
